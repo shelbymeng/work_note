@@ -1,10 +1,10 @@
 # 笔记  
 ## 1.git  
-### 远程仓库
+### 1.远程仓库
 添加远程仓库，并且将本地仓库与远程仓库关联。  
 `git remote add origin git@github.com:<github名字>/<仓库名>.git`  
 `git push -u origin master第一次推送所有的内容`  
-### 分支管理  
+### 2.分支管理  
 `查看分支 git branch`  
 `创建分支 git branch <name>`  
 `切换分支 git checkout <name>  || gitit switch <name>`  
@@ -29,7 +29,7 @@
 - 如果没有冲突或者解决掉冲突，再用`git push`提交。  
 **注意**  
 如果`git pull`提示`no tracking information`，则说明本地分支与远程分支的连接关系没有创建，用命令`git branch --set-upstream-to <branch-name> origin/<branch-name>`  
-### 标签管理  
+### 3.标签管理  
 1. 创建标签 `切换分支 git checkout master 打标签 git tag <name>`  
 `查看所有标签 git tag`  
 `查看标签的信息 git show <tagname>`  
@@ -42,7 +42,17 @@
 `推送标签到远程 git push origin <tagname>`  
 `一次推送全部本地标签  git push origin --tags`  
 `删除远程标签，先删除本地标签 Deleted tag <tagname>`  
-`然后再从远程删除。 git push origin :refs/tags/<tagname>`
+`然后再从远程删除。 git push origin :refs/tags/<tagname>`  
+### 自定义git  
+1. 忽略特殊文件  
+- 忽略操作系统生成的大文件。  
+- 忽略编译生成的中间件，可执行文件等。  
+- 忽略你自己的带有敏感信息的配置文件。  
+如果发现.gitignore编写有问题，可以用`git check-ignore`命令检查。  
+
+2. 配置别名  
+`git config --global alias.st status`可以将`git status`命令改为`git st`。  
+3. 搭建git服务器   
 
 ## 2.git flow  
 ### 1. 如何工作  
