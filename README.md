@@ -1,10 +1,13 @@
-# 第一周笔记  
+# 笔记  
 ## 1.git  
 ### 远程仓库
+添加远程仓库，并且将本地仓库与远程仓库关联。  
+`git remote add origin git@github.com:<github名字>/<仓库名>.git`  
+`git push -u origin master第一次推送所有的内容`  
 ### 分支管理  
 `查看分支 git branch`  
 `创建分支 git branch <name>`  
-`切换分支 git checkout <name>  || git switch <name>`  
+`切换分支 git checkout <name>  || gitit switch <name>`  
 `创建加切换分支 git checkout -b <name> || git switch -c <name>`  
 `合并某分支到指定的分支 git merge <name>`  
 `删除分支 git branch -d <name>`  
@@ -35,13 +38,19 @@
 `创建带说明的标签 -a指定标签名 -m指定说明文字`  
 `查看说明文字 git show <tagname>`  
 2. 操作标签  
-`删除标签 Deleted tag || git tag -d <tagname>`    
+`删除标签 Deleted tag || git tag -d <tagname>`   
 `推送标签到远程 git push origin <tagname>`  
 `一次推送全部本地标签  git push origin --tags`  
 `删除远程标签，先删除本地标签 Deleted tag <tagname>`  
 `然后再从远程删除。 git push origin :refs/tags/<tagname>`
 
 ## 2.git flow  
+1. 如何工作  
+GitFlow流程仍然使用一个中央代码库，开发者再本地进行开发，然后再将分支代码推送到中央仓库。唯一不同的是项目中的分支结构。  
+2. 用于记录历史的分支  
+GitFlow使用两个分支来记录项目开发的历史，而不是单一的使用master分支。再流程中，master用于保存官方的发布历史，而develop分支才是用于集成各种功能开发的分支。使用版本号为master上的所有提交打上标签。  
+![记录历史](http://blog.didispace.com/content/images/posts/gitflow-info-2.png)
+![记录历史](http://blog.didispace.com/content/images/posts/gitflow-info-2.png)
 ## 3.typeScript  
 
 | 1 | 2 |
