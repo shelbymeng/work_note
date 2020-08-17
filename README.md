@@ -45,18 +45,18 @@
 `然后再从远程删除。 git push origin :refs/tags/<tagname>`
 
 ## 2.git flow  
-1. 如何工作  
+### 1. 如何工作  
 GitFlow流程仍然使用一个中央代码库，开发者再本地进行开发，然后再将分支代码推送到中央仓库。唯一不同的是项目中的分支结构。  
-2. 用于记录历史的分支  
+### 2. 用于记录历史的分支  
 GitFlow使用两个分支来记录项目开发的历史，而不是单一的使用master分支。再流程中，master用于保存官方的发布历史，而develop分支才是用于集成各种功能开发的分支。使用版本号为master上的所有提交打上标签。  
 ![记录历史](http://blog.didispace.com/content/images/posts/gitflow-info-2.png)  
-3. 用于功能开发的分支  
+### 3. 用于功能开发的分支  
 每一个新功能开发都应该使用各自独立的分支。分支也可以被推送到中央仓库。在创建新的功能开发分支时，父分支应该选择develop。当功能开发完成时，改动代码应该合并到develop分支。功能开发不应该牵扯到master。  
 ![功能开发](http://blog.didispace.com/content/images/posts/gitflow-info-3.png)  
-4. 用于发布的分支  
+### 4. 用于发布的分支  
 ![发布](http://blog.didispace.com/content/images/posts/gitflow-info-4.png)  
 当develop分支积聚了足够多的新功能时，可以基于develop分支建立一个用于产品发布的分支。这个分支的创建意味着一个发布周期的开始，也意味着本次发布不会再增加新功能，在这个分支上只能修复bug，和一些与发布有关的任务。这个分支会被合并到master中，并且用版本号打上标签。发布分支上的改动还应该合并入develop分支，在发布周期内，develop分支依然在使用。  
-5. 用于维护的分支  
+### 5. 用于维护的分支  
 ![维护](http://blog.didispace.com/content/images/posts/gitflow-info-5.png)  
 发布后的维护或者紧急问题需要使用一个独立的分支。这是唯一一种可以直接基于master创建的分支。问题修复后，将改动合并入master和develop分支，master还要使用更新的版本号打好标签。  
 ## 3.typeScript  
