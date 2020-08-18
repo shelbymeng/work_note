@@ -99,7 +99,57 @@ GitFlow使用两个分支来记录项目开发的历史，而不是单一的使�
 ![维护](http://blog.didispace.com/content/images/posts/gitflow-info-5.png)  
 发布后的维护或者紧急问题需要使用一个独立的分支。这是唯一一种可以直接基于master创建的分支。问题修复后，将改动合并入master和develop分支，master还要使用更新的版本号打好标签。  
 ## 三. typeScript  
-
-| 1 | 2 |
-| -- | -- |  
-| a | b |
+### 1.基础类型  
+- 布尔型：`let isDone: boolean = false;`  
+- 数字：浮点数类型，关键词为number，ts支持二进制与八进制。  
+`let decLiteral: number = 6;`  
+`let hexLiteral: number = 0xf00d;`  
+`let binaryLiteral: number = 0b1010;`  
+`let octalLiteral: number = 0o744;`  
+- 字符串：可以使用(',")  
+`let name: string = "bob";`  
+`name = "smith";`  
+也可以使用模板字符串。  
+- 数组：  
+定义有两种方式：
+1. 可以在元素类型后面接上 []，表示由此类型元素组成的一个数组。  
+`let list: number[] = [1, 2, 3];`  
+2. 第二种方式是使用数组泛型，Array<元素类型>  
+`let list: Array<number> = [1, 2, 3];`  
+- 元组Tuple：  
+元组类型允许表示一个已知元素数量和类型的数组，各元素的类型不必相同。  
+`// Declare a tuple type`  
+`let x: [string, number];`  
+`// Initialize it`  
+`x = ['hello', 10]; // OK`  
+`// Initialize it incorrectly`  
+`x = [10, 'hello']; // Error`  
+当访问一个越界的元素，将会使用联合类型替代。  
+- 枚举：  
+enum类型是对JavaScript标准数据类型的一个补充。  
+`enum Color {Red, Green, Blue}`  
+`let c: Color = Color.Green;`  
+默认情况下，从0开始编号，也可以手动指定成员的值。  
+- Any:   
+在编程阶段还不清楚类型的变量指定一个类型。这些值可能来自于动态的类型。这种情况下，我们希望这些变量可以直接通过检查。可以使用any来标记这些变量。  
+`let notSure: any = 4;`  
+`notSure = "maybe a string instead";`  
+`notSure = false; // okay, definitely a boolean`  
+当只知道部分数据时，any类型很有用。  
+`let list: any[] = [1, true, "free"];`  
+`list[1] = 100;`  
+- void:  
+它没有表示任何类型，当一个函数没有返回值时，函数定义为void。  
+`function warnUser(): void {
+    console.log("This is my warning message");
+}`  
+默认情况下，null和undefined是所有类型的子类型。就是说可以将null和undefined赋值给number类型的变量。  
+然而当你指定了--strictNullChecks标记，null和undefined只能赋值给void和他们自己。这可以避免很多常见的问题。  
+- never：  
+表示那些永远不存在的值。例如never类型是那些总会抛出异常或者根本不会有返回值的函数表达式或箭头函数表达式的返回类型；变量也有可能是never类型，当它们被永不为真的类型保护所约束时。  
+never类型是任何类型的子类型，也可以赋值给任何类型；然而，没有类型是never的子类型或可以赋值给never类型（除了never类型本身）。即使any也不可以赋给never。  
+### 2.变量声明  
+### 3.接口  
+### 4.类  
+### 5.函数  
+### 6.泛型  
