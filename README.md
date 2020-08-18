@@ -1,10 +1,33 @@
 # 笔记  
-## 1.git  
-### 1.远程仓库
+## 一. git 
+### 1.时光机穿梭   
+`查看工作区状态 git stutas`  
+`查看历史修改内容 git diff`
+#### 版本回退  
+`查看历史记录 git log`  
+git中，用HEAD表示当前版本，是最新一次的提交，上一个版本就是HEAD^，上上个版本就是HEAD^^。  
+`回退版本 git reset`  
+若想回到回退前的版本，只要命令窗口没有关闭，可以使用`git reset --hard 版本号前几位`，git会自动查询匹配。  
+HEAD指针始终指向当前版本。回退操作就是将HEAD指向前一个版本。  
+`查看每一条指令 git reflog`  
+#### 工作区与暂存区  
+![功能开发](https://www.liaoxuefeng.com/files/attachments/919020037470528/0)  
+文件向版本库中添加：  
+1. `git add`将文件修改添加到暂存区。  
+2. `git commit`将暂存区的所有内容全部提交到当前分支。  
+#### 管理修改   
+`查看工作区和版本库里面最新版本的区别 git diff HEAD -- <文件名>`  
+`git checkout -- <filename>`可以将文件在工作区的修改全部撤销，分为两种情况：  
+- 文件修改后还没有放到暂存区，那么撤销修改就回到和版本库一样的状态。  
+- 文件已经添加到暂存区，又做了修改，则撤销修改就回到添加到暂存区的状态。  
+总之，这个操作就是让文件回到最近一次的`git add`或者`git commit`的状态。  
+#### 撤销文件  
+#### 删除文件
+### 2.远程仓库
 添加远程仓库，并且将本地仓库与远程仓库关联。  
 `git remote add origin git@github.com:<github名字>/<仓库名>.git`  
 `git push -u origin master第一次推送所有的内容`  
-### 2.分支管理  
+### 3.分支管理  
 `查看分支 git branch`  
 `创建分支 git branch <name>`  
 `切换分支 git checkout <name>  || gitit switch <name>`  
@@ -29,32 +52,33 @@
 - 如果没有冲突或者解决掉冲突，再用`git push`提交。  
 **注意**  
 如果`git pull`提示`no tracking information`，则说明本地分支与远程分支的连接关系没有创建，用命令`git branch --set-upstream-to <branch-name> origin/<branch-name>`  
-### 3.标签管理  
-1. 创建标签 `切换分支 git checkout master 打标签 git tag <name>`  
+### 4.标签管理  
+#### 创建标签   
+`切换分支 git checkout master 打标签 git tag <name>`  
 `查看所有标签 git tag`  
 `查看标签的信息 git show <tagname>`  
 **注意**  
 标签不是按照顺序列出，而是按照字母排序的。  
 `创建带说明的标签 -a指定标签名 -m指定说明文字`  
 `查看说明文字 git show <tagname>`  
-2. 操作标签  
+#### 操作标签  
 `删除标签 Deleted tag || git tag -d <tagname>`   
 `推送标签到远程 git push origin <tagname>`  
 `一次推送全部本地标签  git push origin --tags`  
 `删除远程标签，先删除本地标签 Deleted tag <tagname>`  
 `然后再从远程删除。 git push origin :refs/tags/<tagname>`  
-### 自定义git  
-1. 忽略特殊文件  
+### 5.自定义git  
+#### 忽略特殊文件  
 - 忽略操作系统生成的大文件。  
 - 忽略编译生成的中间件，可执行文件等。  
 - 忽略你自己的带有敏感信息的配置文件。  
 如果发现.gitignore编写有问题，可以用`git check-ignore`命令检查。  
 
-2. 配置别名  
+#### 配置别名  
 `git config --global alias.st status`可以将`git status`命令改为`git st`。  
-3. 搭建git服务器   
+#### 搭建git服务器   
 
-## 2.git flow  
+## 二. git flow  
 ### 1. 如何工作  
 GitFlow流程仍然使用一个中央代码库，开发者再本地进行开发，然后再将分支代码推送到中央仓库。唯一不同的是项目中的分支结构。  
 ### 2. 用于记录历史的分支  
@@ -69,7 +93,7 @@ GitFlow使用两个分支来记录项目开发的历史，而不是单一的使�
 ### 5. 用于维护的分支  
 ![维护](http://blog.didispace.com/content/images/posts/gitflow-info-5.png)  
 发布后的维护或者紧急问题需要使用一个独立的分支。这是唯一一种可以直接基于master创建的分支。问题修复后，将改动合并入master和develop分支，master还要使用更新的版本号打好标签。  
-## 3.typeScript  
+## 三. typeScript  
 
 | 1 | 2 |
 | -- | -- |  
