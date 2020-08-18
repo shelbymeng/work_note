@@ -17,12 +17,15 @@ HEAD指针始终指向当前版本。回退操作就是将HEAD指向前一个版
 2. `git commit`将暂存区的所有内容全部提交到当前分支。  
 #### 管理修改   
 `查看工作区和版本库里面最新版本的区别 git diff HEAD -- <文件名>`  
+
+#### 撤销x修改   
 `git checkout -- <filename>`可以将文件在工作区的修改全部撤销，分为两种情况：  
 - 文件修改后还没有放到暂存区，那么撤销修改就回到和版本库一样的状态。  
 - 文件已经添加到暂存区，又做了修改，则撤销修改就回到添加到暂存区的状态。  
 总之，这个操作就是让文件回到最近一次的`git add`或者`git commit`的状态。  
-#### 撤销文件  
-#### 删除文件
+#### 删除文件  
+`从版本库中删除文件 git rm filename 再 git commit`  
+
 ### 2.远程仓库
 添加远程仓库，并且将本地仓库与远程仓库关联。  
 `git remote add origin git@github.com:<github名字>/<仓库名>.git`  
@@ -50,15 +53,17 @@ HEAD指针始终指向当前版本。回退操作就是将HEAD指向前一个版
 - 若推送失败，则因为远程仓库的代码比本地新，需要先用`git pull`合并。  
 - 如果合并有冲突，则解决冲突，并在本地提交。  
 - 如果没有冲突或者解决掉冲突，再用`git push`提交。  
-**注意**  
+**注意:**  
 如果`git pull`提示`no tracking information`，则说明本地分支与远程分支的连接关系没有创建，用命令`git branch --set-upstream-to <branch-name> origin/<branch-name>`  
 ### 4.标签管理  
 #### 创建标签   
 `切换分支 git checkout master 打标签 git tag <name>`  
 `查看所有标签 git tag`  
 `查看标签的信息 git show <tagname>`  
-**注意**  
-标签不是按照顺序列出，而是按照字母排序的。  
+**注意:**   
+
+标签不是按照顺序列出，而是按照字母排序的。
+
 `创建带说明的标签 -a指定标签名 -m指定说明文字`  
 `查看说明文字 git show <tagname>`  
 #### 操作标签  
