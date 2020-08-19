@@ -570,11 +570,562 @@ ts可以用它来明确的强制一个类去符合某种约定。
     constructor(theName: string) { this.name = theName; }
 }`  
 `new Animal("Cat").name; // 错误: 'name' 是私有的.`  
-
+ts使用的是结构性类型系统，当比较两种类型的时候，再不会在乎它们从何而来，如果所有的成员类型都是兼容的，我们就认为它们的类型是兼容的。  
+当我们比较带有private或protected成员类型的时候，情况会有不同。如果其中一个类型包含一个private类型，那么只有当另一个类型中也存在private成员，并且它们都是来自于同一声明时，我们才会认为这两个类型是兼容的。protected也是如此。  
+`class Animal {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}`  
+`class Rhino extends Animal {
+    constructor() { super("Rhino"); }
+}`  
+`class Employee {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}`  
+`let animal = new Animal("Goat");`  
+`let rhino = new Rhino();`  
+`let employee = new Employee("Bob");`  
+`animal = rhino;`  
+`animal = employee; // 错误: Animal 与 Employee 不兼容.`  
+不兼容的原因是在animal和employee中都有各自定义的private成员，不同的声明，所以不兼容。  
+- 理解protected  
+protected修饰符与private修饰符的行为类似，但是protected成员在派生类中仍然可以访问。  
+`class Person {
+    protected name: string;
+    constructor(name: string) { this.name = name; }
+}`   
+`class Employee extends Person {
+    private department: string;
+    constructor(name: string, department: string) {
+        super(name)
+        this.department = department;
+    }
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}`  
+`let howard = new Employee("Howard", "Sales");`  
+`console.log(howard.getElevatorPitch());`  
+`console.log(howard.name); // 错误`  
+**注：** 不能再Person类外使用name，但是可以通过employee类的实例方法访问，因为employee是由person派生而来。  
+构造函数也可以被标记为protected，这意味着这个类不能再包含它的类以外被实例化，但是可以被继承。  
+`class Person {
+    protected name: string;
+    protected constructor(theName: string) { this.name = theName; }
+}`  
+`// Employee 能够继承 Person`   
+`class Employee extends Person {
+    private department: string;
+    constructor(name: string, department: string) {
+        super(name);
+        this.department = department;
+    }
+    public getElevatorPitch() {
+        return `Hello, my name is ${this.name} and I work in ${this.department}.`;
+    }
+}`   
+`let howard = new Employee("Howard", "Sales");`  
+`let john = new Person("John"); // 错误: 'Person' 的构造函数是被保护的.`  
 #### readonly修饰符  
+可以使用readonly将属性设置为只读，只读属性必须在声明时或构造函数里被初始化。  
+`class Octopus {
+    readonly name: string;
+    readonly numberOfLegs: number = 8;
+    constructor (theName: string) {
+        this.name = theName;
+    }
+}`  
+`let dad = new Octopus("Man with the 8 strong legs");`  
+`dad.name = "Man with the 3-piece suit"; // 错误! name 是只读的.`
+- 参数属性  
+再Octopus中定义了一个只读成员name和一个参数为theName的构造函数，并将theName赋值给name。参数属性可以方便的让我们在一个地方定义并者初始化一个成员。  
+`class Octopus {
+    readonly numberOfLegs: number = 8;
+    constructor(readonly name: string) {
+    }
+}`  
+仅在构造函数中使用 `readonly name:string` 参数来创建和初始化name成员，将声明和赋值合并到一处。  
+参数属性通过给构造函数前面添加一个访问限定符来声明。使用private限定一个参数属性会声明并初始化一个私有成员。  
 #### 存取器  
-#### 静态属性  
+ts支持通过setters/getters来截取对对象成员的访问。  
+`class Employee {
+    fullName: string;
+}`  
+`let employee = new Employee();`  
+`employee.fullName = "Bob Smith";` 
+`if (employee.fullName) {
+    console.log(employee.fullName);
+}`  
+例子中可以随意设置fullName。  
+`let passcode = "secret passcode";`  
+`class Employee {
+    private _fullName: string;
+    get fullName(): string {
+        return this._fullName;
+    }
+    set fullName(newName: string) {
+        if (passcode && passcode == "secret passcode") {
+            this._fullName = newName;
+        }
+        else {
+            console.log("Error: Unauthorized update of employee!");
+        }
+    }
+}`  
+`let employee = new Employee();`  
+`employee.fullName = "Bob Smith";`  
+`if (employee.fullName) {
+    alert(employee.fullName);
+}`  
+例子中先检查用户密码是否正确，再允许其修改员工的信息。将对fullName的直接访问改为可以检查密码的set方法。  
+**注意：** 存取器要求将编译器设置为输出js5以上，其次只带有get不带有set的存取器被认作readonly。  
+#### 静态属性
+可以创建类的静态成员，这些属性存在于类本身而不是实例上，。本例中使用static定义origin，因为这是所有网格都会用到的属性。每个实例想要访问这个属性的时候都要再origin前面加上类名。如同在实例属性前使用this.前缀来访问一样。本例使用Grid.origin。  
+`class Grid {
+    static origin = {x: 0, y: 0};
+    calculateDistanceFromOrigin(point: {x: number; y: number;}) {
+        let xDist = (point.x - Grid.origin.x);
+        let yDist = (point.y - Grid.origin.y);
+        return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;
+    }
+    constructor (public scale: number) { }
+}`  
+`let grid1 = new Grid(1.0);  // 1x scale`  
+`let grid2 = new Grid(5.0);  // 5x scale`  
+`console.log(grid1.calculateDistanceFromOrigin({x: 10, y: 10}));`  
+`console.log(grid2.calculateDistanceFromOrigin({x: 10, y: 10}));`  
 #### 抽象类  
+抽象类做为其他派生类的基类使用，它们一般不会被实例化，不同于接口，抽象类可以包含成员的实现细节，abstract关键字是用于定义抽象类和在抽象类内部定义抽象方法。  
+`abstract class Animal {
+    abstract makeSound(): void;
+    move(): void {
+        console.log('roaming the earch...');
+    }
+}`  
+抽象类中的抽象方法不包含具体实现并且必须在派生类中实现。与接口方法类似，两者都是定义方法签名但不包含方法体，抽象方法必须包含abstract关键字并且可以包含访问修饰符。  
+`abstract class Department {
+    constructor(public name: string) {
+    }
+    printName(): void {
+        console.log('Department name: ' + this.name);
+    }
+    abstract printMeeting(): void; // 必须在派生类中实现
+}`  
+`class AccountingDepartment extends Department {
+    constructor() {
+        super('Accounting and Auditing'); // 在派生类的构造函数中必须调用 super()
+    }
+    printMeeting(): void {
+        console.log('The Accounting Department meets each Monday at 10am.');
+    }
+    generateReports(): void {
+        console.log('Generating accounting reports...');
+    }
+}`  
+`let department: Department; // 允许创建一个对抽象类型的引用`  
+`department = new Department(); // 错误: 不能创建一个抽象类的实例`  
+`department = new AccountingDepartment(); // 允许对一个抽象子类进行实例化和赋值`  
+`department.printName();`  
+`department.printMeeting();`  
+`department.generateReports(); // 错误: 方法在声明的抽象类中不存在`  
 #### 高级技巧  
+- 构造函数  
+当在ts中声明了一个类的时候，实际上声明了很多。首先就是类的实例的类型。  
+`class Greeter {
+    greeting: string;
+    constructor(message: string) {
+        this.greeting = message;
+    }
+    greet() {
+        return "Hello, " + this.greeting;
+    }
+}`  
+`let greeter: Greeter;`  
+`greeter = new Greeter("world");`  
+`console.log(greeter.greet());`  
+在这里 `let greeter: Greeter` 意思是Greeter类的实例是Greeter。  
+也创建了一个叫做构造函数的值，这个函数会在我们使用new操作符创建实例的时候被调用。  
+`let Greeter = (function () {
+    function Greeter(message) {
+        this.greeting = message;
+    }
+    Greeter.prototype.greet = function () {
+        return "Hello, " + this.greeting;
+    };
+    return Greeter;
+})();`  
+`let greeter;`  
+`greeter = new Greeter("world");`  
+`console.log(greeter.greet());`   
+`let greeter;` 将被赋值为构造函数，当调用new并执行了这个函数后，便会得到一个类的实例。这个函数也包含了类的所有静态属性，换个角度说，我们可认为类具有实例部分与静态部分这两个部分。  
+`class Greeter {
+    static standardGreeting = "Hello, there";
+    greeting: string;
+    greet() {
+        if (this.greeting) {
+            return "Hello, " + this.greeting;
+        }
+        else {
+            return Greeter.standardGreeting;
+        }
+    }
+}`  
+`let greeter1: Greeter;`  
+`greeter1 = new Greeter();`  
+`console.log(greeter1.greet());`  
+`let greeterMaker: typeof Greeter = Greeter;`  
+`greeterMaker.standardGreeting = "Hey there!";`  
+`let greeter2: Greeter = new greeterMaker();`  
+`console.log(greeter2.greet());`  
+我们创建了一个greeterMaker的变量。这个变量保存了这个类或者说保存了类构造函数，然后使用typeof Greeter，意思是取Greeter类的类型，而不是实例的类型。或者更确切的说，告诉我Greeter标识符的类型，也就是构造函数的类型。这个类型包含了类的所有静态成员和构造函数。  
+- 把类当作接口使用  
+类定义会创建两个东西，类的实例类型和一个构造函数。因为类可以创建出类型，所以你可以在允许使用接口的地方使用类。  
+`class Point {
+    x: number;
+    y: number;
+}`  
+`interface Point3d extends Point {
+    z: number;
+}`  
+`let point3d: Point3d = {x: 1, y: 2, z: 3};`  
 ### 5.函数  
+#### 介绍  
+函数是js应用程序的基础，可以帮助你实现抽象层，模拟类，信息隐藏和模块，在ts中虽然已经支持类，命名空间和模块，但函数仍是主要定义行为的地方。  
+#### 函数  
+和js一样，ts也可以创建有名字的函数和匿名函数。  
+在js中，函数可以使用函数体外部的变量，当函数这样做时，就相当于它捕获了这个变量。  
+#### 函数类型  
+- 为函数定义类型  
+`function add(x: number, y: number): number {
+    return x + y;
+}`  
+`let myAdd = function(x: number, y: number): number { return x + y; };`  
+可以给每个参数添加类型之后再为函数本身添加返回值类型。  
+- 书写完整函数类型  
+`let myAdd: (x: number, y: number) => number =
+function(x: number, y: number): number { return x + y; };`  
+函数类型包含两个部分：参数类型和返回值类型。当写出完整函数类型的时候，这两部分都需要。以参数列表的形式写出参数类型，为每个参数指定一个类型和名字。也可以这样书写：  
+`let myAdd: (baseValue: number, increment: number) => number =
+function(x: number, y: number): number { return x + y; };`  
+只要参数类型匹配，就认为它是有效函数类型，而不在乎函数名是否正确。  
+第二部分是返回值的类型，对于返回值，在函数和返回值之间使用（=>）符号。之前提到，返回值类型是函数类型的必要部分，如果函数没有返回值，也必须指定返回值的类型是void而不能留空。  
+函数的类型是由参数类型和返回值组成的，函数中使用的捕获变量不会体现在类型里。
+- 推断类型  
+如果在赋值语句一边指定了类型，另一边没有指定，ts编译器会自动识别出类型。  
+`// myAdd has the full function type`  
+`let myAdd = function(x: number, y: number): number { return x + y; };`  
+`// The parameters `x`  and  `y` have the type number`  
+`let myAdd: (baseValue: number, increment: number) => number = function(x, y) { return x + y; };`  
+这叫做按上下文归类，是类型推论的一种。  
+#### 可选参数和默认参数  
+ts里的每个参数都是必须的。这不是指不能传递null或者undefined作为参数，而是说编译器检查用户是否为每个参数都传入了值，编译器还会假设只有这些参数会被传递进参数。  
+`function buildName(firstName: string, lastName: string) {
+    return firstName + " " + lastName;
+}`  
+`let result1 = buildName("Bob");`  
+`// error, too few parameters`  
+`let result2 = buildName("Bob", "Adams", "Sr.");`  
+`// error, too many parameters`
+`let result3 = buildName("Bob", "Adams");`   
+`// ah, just right`  
+在参数名旁使用？实现可选参数的功能。  
+`function buildName(firstName: string, lastName?: string) {
+    if (lastName)
+        return firstName + " " + lastName;
+    else
+        return firstName;
+}`  
+`let result1 = buildName("Bob");  // works correctly now`  
+`let result2 = buildName("Bob", "Adams", "Sr.");`  
+`// error, too many parameters`  
+`let result3 = buildName("Bob", "Adams");`
+`// ah, just right`  
+**注意：** 可选参数必须放在参数后面。  
+在ts中，也可以为参数提供一个默认值当用户没有传递这个参数或者传递的值是undefined时。它叫做有默认初始化值的参数。  
+`function buildName(firstName: string, lastName = "Smith") {
+    return firstName + " " + lastName;
+}`  
+`let result1 = buildName("Bob");`  
+`// works correctly now, returns "Bob Smith"`  
+`let result2 = buildName("Bob", undefined);`  
+`// still works, also returns "Bob Smith"`  
+`let result3 = buildName("Bob", "Adams", "Sr.");`  
+`// error, too many parameters`  
+`let result4 = buildName("Bob", "Adams");`  
+`// ah, just right`  
+#### 剩余参数  
+必要参数，可选参数，默认参数有共同点，它们表示某一个函数。有时你想同时操作多个参数，并且你不知道多少个参数会被放进来。在js中可以使用arguments来访问所有传入的参数。  
+在ts中可以将所有参数收集到一个变量里。  
+`function buildName
+(firstName: string, ...restOfName: string[]) {
+  return firstName + " " + restOfName.join(" ");
+}`  
+`let employeeName = 
+buildName("Joseph", "Samuel", "Lucas", "MacKinzie");`  
+剩余参数会被当作个数不限的可选参数，可以没有，也可以有多个参数。编译器创建参数数组，名字是在...后面给定的名字，可以在函数体内部使用这个数组，这个省略号也会在带有剩余参数的函数类型定义上使用。  
+- this和箭头函数  
+在js中，this的值在函数被调用的时候才会指定。  
+`let deck = {
+    suits: ["hearts", "spades", "clubs", "diamonds"],
+    cards: Array(52),
+    createCardPicker: function() {
+        return function() {
+            let pickedCard = Math.floor(Math.random() * 52);
+            let pickedSuit = Math.floor(pickedCard / 13);
+            return {suit: this.suits[pickedSuit], card: pickedCard % 13};
+        }
+    }
+}`  
+<br>`let cardPicker = deck.createCardPicker();`  
+`let pickedCard = cardPicker();`  
+`alert("card: " + pickedCard.card + " of " + pickedCard.suit);`  
+createCardPicker是一个函数，并且又返回了一个函数，运行这个程序会报错，原因是createCardPicker中的this值被设置为window而不是deck对象。  
+为了解决这个问题，可以在函数被返回的时候就绑好this。这样无论怎样使用都会引用绑定的deck对象。箭头函数可以保存函数创建时的this，而不是调用的值。    
+`let deck = {
+    suits: ["hearts", "spades", "clubs", "diamonds"],
+    cards: Array(52),
+    createCardPicker: function() {
+        // NOTE: the line below is now an arrow function, allowing us to capture 'this' right here
+        return () => {
+            let pickedCard = Math.floor(Math.random() * 52);
+            let pickedSuit = Math.floor(pickedCard / 13);
+            return {suit: this.suits[pickedSuit], card: pickedCard % 13};
+        }
+    }
+}`  
+<br>`let cardPicker = deck.createCardPicker();`  
+`let pickedCard = cardPicker();`  
+`alert("card: " + pickedCard.card + " of " + pickedCard.suit);`  
+- this参数  
+然而`this.suits[pickedSuit]`的类型依然为any，原因是this来自对象字面量里的函数表达式。修改的方法是，提供一个显示的this参数。this参数是个假的参数，它出现在参数列表的最前面。  
+`function f(this: void) {
+    // make sure `this` is unusable in this standalone function
+}`  
+`interface Card {
+    suit: string;
+    card: number;
+}`  
+`interface Deck {
+    suits: string[];
+    cards: number[];
+    createCardPicker(this: Deck): () => Card;
+}`  
+`let deck: Deck = {
+    suits: ["hearts", "spades", "clubs", "diamonds"],
+    cards: Array(52),
+    // NOTE: The function now explicitly specifies that its callee must be of type Deck
+    createCardPicker: function(this: Deck) {
+        return () => {
+            let pickedCard = Math.floor(Math.random() * 52);
+            let pickedSuit = Math.floor(pickedCard / 13);
+
+            return {suit: this.suits[pickedSuit], card: pickedCard % 13};
+        }
+    }
+}`  
+`let cardPicker = deck.createCardPicker();`  
+`let pickedCard = cardPicker();`  
+`alert("card: " + pickedCard.card + " of " + pickedCard.suit);`   
+此时ts已经知道createCardPicker期望在某个Deck对象上调用。也就是说this是Deck类型的，而非any。  
+- this参数在回调函数中  
+
+#### 重载  
+js是动态语言。js里的函数根据传入不同的参数而返回不同类型的数据是常见的。  
+`let suits = ["hearts", "spades", "clubs", "diamonds"];`  
+`function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}`  
+`let myDeck = [
+    { suit: "diamonds", card: 2 }, 
+    { suit: "spades", card: 10 }, 
+    { suit: "hearts", card: 4 }];`  
+`let pickedCard1 = myDeck[pickCard(myDeck)];`  
+`alert("card: " + pickedCard1.card + " of " + pickedCard1.suit);`  
+`let pickedCard2 = pickCard(15);`  
+`alert("card: " + pickedCard2.card + " of " + pickedCard2.suit);`  
+pickCard方法根据传入的参数不同会返回两种类型，如果传入的是代表纸牌的对象，函数的作用是抓一张牌。  
+下面来重载pickCard函数：  
+`let suits = ["hearts", "spades", "clubs", "diamonds"];`  
+`function pickCard
+(x: {suit: string; card: number; }[]): number;`  
+`function pickCard
+(x: number): {suit: string; card: number; };`  
+`function pickCard(x): any {
+    // Check to see if we're working with an object/array
+    // if so, they gave us the deck and we'll pick the card
+    if (typeof x == "object") {
+        let pickedCard = Math.floor(Math.random() * x.length);
+        return pickedCard;
+    }
+    // Otherwise just let them pick the card
+    else if (typeof x == "number") {
+        let pickedSuit = Math.floor(x / 13);
+        return { suit: suits[pickedSuit], card: x % 13 };
+    }
+}`  
+`let myDeck = [
+    { suit: "diamonds", card: 2 }, 
+    { suit: "spades", card: 10 }, 
+    { suit: "hearts", card: 4 }];`  
+`let pickedCard1 = myDeck[pickCard(myDeck)];`  
+`alert("card: " + pickedCard1.card + " of " + pickedCard1.suit);`  
+`let pickedCard2 = pickCard(15);`  
+`alert("card: " + pickedCard2.card + " of " + pickedCard2.suit);`  
+这样以后，重载的pickCard函数在调用的时候会进行正确的类型检查。  
+为了可以让编译器正确的检查类型，它与js的流程相似，它查找重载列表，尝试使用第一个重载定义，如果匹配就使用。因此在定义重载的时候，一定要将最准确的定义放在前面。  
+
 ### 6.泛型  
+#### 介绍  
+软件工程中，不仅要创建一致性良好的API，同时要考虑可重用性。组件不仅能支持当前的数据类型，同时也可以支持未来的数据类型。  
+#### 泛型之HelloWord  
+创建一个使用泛型的例子identity函数。这个函数会返回任何传入的值。  
+不用泛型的话，函数可能会变成下例：  
+`function identity(arg: number): number {
+    return arg;
+}`  
+或者使用any类型来定义函数：  
+`function identity(arg: any): any {
+    return arg;
+}`  
+使用any类型可以使函数接收任何类型的arg参数，但是这样会丢失一些信息：传入类型与返回的类型应该是一样的，如果传入数字，我们只是知道任何类型的值都会返回。  
+因此需要一种方法使返回值的类型与参入的参数的类型是相同的，这里我们使用了类型变量，这是一种特殊的变量，只表示类型不表示值。  
+`function identity<T>(arg: T): T { return arg; }`  
+给identity添加了类型变量T，T用于捕获用户传入的类型，之后我们就可以使用这个类型，也可以将T类型返回。  
+此时这个版本的identity函数叫做泛型，因为它可以适用于多个类型，不同于使用any，它不会丢失信息。  
+当定义了泛型函数后，可以用两种方法使用，第一种是传入所有的参数，包含类型参数：
+`let output = identity<string>("myString");  // type of output will be 'string'`  
+这里明确了T是string类型，并作为一个参数传给函数，使用<>而不是()。  
+第二种更加普遍的方式是利用类型推论，即编译器会根据传入的参数自动的帮助我们确定T的类型。  
+`let output = identity("myString");  // type of output will be 'string'`    
+此时没有必要使用<>来明确传入的类型，编译器可以查看传入参数的值，然后将T设置为它的类型。类型推论帮助我们保持代码精简和高可读性。若编译器不能够自动的判断出类型的话，只能明确传入T的类型。  
+#### 使用泛型变量  
+`function loggingIdentity<T>(arg: T): T {
+    console.log(arg.length);  
+    // Error: T doesn't have .length
+    return arg;
+}`  
+因为没有指明arg的类型，所以很有可能arg这个类型没有.length方法。  
+现在若我们想直接操作T类型的数组，而不是直接操作T，所以：  
+`function loggingIdentity<T>(arg: T[]): T[] {
+    console.log(arg.length);  
+    // Array has a .length, so no more error
+    return arg;
+}`  
+泛型函数loggingIdentity，接收类型参数T和参数arg，它是个元素类型，是T的数组，并返回元素类型是T的数组。此时可以让我们把泛型变量T当作类型的一部分使用，而不是整个类型，增加了灵活性。  
+#### 泛型类型  
+创建泛型函数：  
+`function identity<T>(arg: T): T {
+    return arg;
+}`  
+`let myIdentity: <T>(arg: T) => T = identity;`  
+与普通函数不同的是在有一个类型参数在最前面，像函数声明。  
+还可以使用带有调用签名的对象字面量来定义泛型函数。  
+`function identity<T>(arg: T): T {
+    return arg;
+}`  
+`let myIdentity: {<T>(arg: T): T} = identity;`  
+将上例的对象字面量拿出来作为一个接口。  
+`interface GenericIdentityFn {
+    <T>(arg: T): T;
+}`  
+`function identity<T>(arg: T): T {
+    return arg;
+}`  
+`let myIdentity: GenericIdentityFn = identity;`  
+<br>
+`interface GenericIdentityFn<T> {
+    (arg: T): T;
+}`  
+`function identity<T>(arg: T): T {
+    return arg;
+}`  
+`let myIdentity: GenericIdentityFn<number> = identity;`  
+这里不再描述泛型函数，而是把非泛型函数签名作为泛型函数的一部分。当我们使用GenericIdentityFn的时候，还需要传入一个类型参数来指定泛型类型，锁定之后代码里使用的类型。对于描述哪部分类型属于泛型的，理解何时将参数放在调用签名里和何时放在接口上。
+除了泛型接口，还可以创建泛型类。  
+**注意：** 无法创建泛型枚举和泛型命名空间。  
+
+#### 泛型类  
+泛型类与泛型接口相似。泛型类使用<>括起泛型类型，跟在类的后面。  
+`class GenericNumber<T> {
+    zeroValue: T;
+    add: (x: T, y: T) => T;
+}`  
+`let myGenericNumber = new GenericNumber<number>();`  
+`myGenericNumber.zeroValue = 0;`  
+`myGenericNumber.add = function(x, y) { return x + y; };`  
+没有限制只使用一种类型。  
+`let stringNumeric = new GenericNumber<string>();`  
+`stringNumeric.zeroValue = "";`  
+`stringNumeric.add = function(x, y) { return x + y; };`  
+`console.log(stringNumeric.add
+(stringNumeric.zeroValue, "test"));`  
+与接口一样，直接将泛型类型放在类的后面，可以帮助我们确认类的所有属性都在使用相同的类型。  
+类有两部分，静态部分与实例部分。泛型类指的是实例部分的类型，所以类的静态属性不能使用这个泛型类型。  
+#### 泛型约束  
+`function loggingIdentity<T>(arg: T): T {
+    console.log(arg.length);  
+    // Error: T doesn't have .length
+    return arg;
+}`  
+相比于操作any所有类型，想要限制函数去处理任意带有.length属性的所有类型，只要传入的类型有这个属性，我们就允许，就是说至少包含这一属性。  
+我们定义一个接口描述约束条件。创建一个包含.length属性的接口，使用这个接口和extends关键字来实现约束：  
+`interface Lengthwise {
+    length: number;
+}`  
+`function loggingIdentity
+<T extends Lengthwise>(arg: T): T {
+    console.log(arg.length);  
+    // Now we know it has a .length property,so no more error
+    return arg;
+}`  
+现在这个泛型函数被定义了约束，因此它不是适用于任何类型：  
+`loggingIdentity(3);  
+// Error, number doesn't have a .length property`  
+需要传入符合约束类型的值，必须包含必须的属性：    
+`loggingIdentity({length: 10, value: 3});`  
+- 在泛型约束中使用类型参数  
+可以声明一个类型参数，且它被另一个类型参数所约束。比如，现在想要用属性名从对象获取这个属性，并且我们想要确保这个属性存在于这个对象obj上，因此需要在这两个类型之间使用约束。  
+`function getProperty(obj: T, key: K) {
+    return obj[key];
+}`  
+`let x = { a: 1, b: 2, c: 3, d: 4 };`  
+`getProperty(x, "a"); // okay`  
+`getProperty(x, "m"); 
+// error: Argument of type 'm' isn't assignable to 'a' | 'b' | 'c' | 'd'.`   
+- 在泛型里使用类类型  
+在TypeScript使用泛型创建工厂函数时，需要引用构造函数的类类型。  
+`function create<T>(c: {new(): T; }): T {
+    return new c();
+}`  
+使用原型属性推断并约束构造函数与类实例的关系。  
+`class BeeKeeper {
+    hasMask: boolean;
+}`  
+`class ZooKeeper {
+    nametag: string;
+}`  
+`class Animal {
+    numLegs: number;
+}`  
+`class Bee extends Animal {
+    keeper: BeeKeeper;
+}`  
+`class Lion extends Animal {
+    keeper: ZooKeeper;
+}`  
+`function createInstance<A extends Animal>(c: new () => A): A {
+    return new c();
+}`  
+`createInstance(Lion).keeper.nametag;  // typechecks!`  
+`createInstance(Bee).keeper.hasMask;   // typechecks!`  
