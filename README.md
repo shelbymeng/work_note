@@ -369,7 +369,212 @@ TypeScript具有ReadonlyArray<T>类型，与Array<T>类似，只是将所有的�
   let result = source.search(subString);
   return result > -1;
 }`  
+#### 可索引的类型  
+与使用描述函数类型类似，可以描述那些能够通过索引得到的类型，可索引类型有一个索引签名，它描述了对象索引的类型，还有相应的索引返回值类型。  
+`interface StringArray {
+  [index: number]: string;
+}`  
+`let myArray: StringArray;`  
+`myArray = ["Bob", "Fred"];`  
+`let myStr: string = myArray[0];`  
+例子中定义了StringArray接口，它具有索引签名。这个索引签名表示当用number去索引StringArray时会得到string类型的返回值。  
+ts支持两种索引签名，字符串和数字，可以同时使用两种签名索引。但是数字索引的返回值必须是字符串索引返回值类型的子类型，这是因为当使用number来索引时，js会将其转换为string然后再去索引对象。也就是说用100（一个number）去索引等同于使用"100"（一个string）去索引，因此两者需要保持一致。  
+字符串索引类型可以很好的描述dictionary模式，并且它们也会确保所有属性与其返回值类型匹配。因为字符串索引声明了`obj.property`和`obj["property"]`两种形式都可以。下例中name类型与字符串索引类型不匹配。类型检查器会报错。   
+可以将索引签名设置为只读属性，这样防止给索引赋值。  
+`interface ReadonlyStringArray {
+    readonly [index: number]: string;
+}`  
+`let myArray: ReadonlyStringArray = ["Alice", "Bob"];`  
+`myArray[2] = "Mallory"; // error!`  
+#### 类类型  
+- 实现接口  
+ts可以用它来明确的强制一个类去符合某种约定。  
+可以在接口中描述一个方法，在类中实现。  
+`interface ClockInterface {
+    currentTime: Date;
+    setTime(d: Date);
+}`  
+`class Clock implements ClockInterface {
+    currentTime: Date;
+    setTime(d: Date) {
+        this.currentTime = d;
+    }
+    constructor(h: number, m: number) { }
+}`  
+- 类静态部分与实例部分的区别  
+当操作类和接口的时候，类有两种类型：静态部分的类型和实例的类型，当使用构造器签名去定义一个接口并试图定义一个类去实现这个接口时会得到一个错误。  
+`interface ClockConstructor {
+    new (hour: number, minute: number);
+}`  
+`class Clock implements ClockConstructor {
+    currentTime: Date;
+    constructor(h: number, m: number) { }
+}`  
+因为当一个类实现了一个接口时，只对其实例部分进行类型检查。constructor存在于类的静态部分，所以不在检查的范围内。  
+因此应该直接操作类的静态部分。下面定义了两个接口，ClockConstructor为构造函数所用和ClockInterface为实例方法所用，为了方便我么定义一个构造函数createClock，它用传入的类型创建实例。  
+`interface ClockConstructor {
+    new (hour: number, minute: number): ClockInterface;
+}`  
+`interface ClockInterface {
+    tick();
+}`  
+`function createClock(ctor: ClockConstructor, hour: number, minute: number): ClockInterface {
+    return new ctor(hour, minute);
+}`  
+`class DigitalClock implements ClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("beep beep");
+    }
+}`  
+`class AnalogClock implements ClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("tick tock");
+    }
+}`  
+`let digital = createClock(DigitalClock, 12, 17);`  
+`let analog = createClock(AnalogClock, 7, 32);`  
+因为createClock第一个参数是ClockConstructor类型，所以在createClock(DigitalClock, 12, 17)中会检查DigitalClock是否符合构造函数签名。  
+- 继承接口  
+和类一样，接口也可以相互继承。这能够从一个接口复制成员到另一个接口里，可以更加灵活的将接口分隔到可重用的模块里。  
+`interface Shape {
+    color: string;
+}`  
+`interface Square extends Shape {
+    sideLength: number;
+}` 
+`let square = <Square>{};`  
+`square.color = "blue";`  
+`square.sideLength = 10;`  
+一个接口可以继承多个接口，创建出多个接口的合成接口。  
+`interface Shape {
+    color: string;
+}`  
+`interface PenStroke {
+    penWidth: number;
+}`  
+`interface Square extends Shape, PenStroke {
+    sideLength: number;
+}`  
+`et square = <Square>{};`  
+`square.color = "blue";`  
+`square.sideLength = 10;`  
+`square.penWidth = 5.0;`  
+- 混合类型  
+接口能够描述js里丰富的类型。因为js动态灵活的特点，有时会希望一个对象可以具有上面提到的多种类型。  
+一个对象可以同时作为函数和对象使用，并且带有额外的属性。  
+`interface Counter {
+    (start: number): string;
+    interval: number;
+    reset(): void;
+}`  
+`function getCounter(): Counter {
+    let counter = <Counter>function (start: number) { };
+    counter.interval = 123;
+    counter.reset = function () { };
+    return counter;
+}`  
+`let c = getCounter();`  
+`c(10);`  
+`c.reset();`  
+`c.interval = 5.0;`  
+- 接口继承类  
+当接口继承了一个类类型时，它会继承类的成员但不包括其实现。就好像接口声明了类中存在的成员，但并没有提供具体的实现一样。接口同样会继承到类的private和protected成员，这意味着当创建了一个接口继承了一个拥有私有或受保护的成员的类时，这个接口类型只能被这个类或其子类所实现（implement）。  
+当具有一个庞大的继承结构时这很有用，但是要指出你的代码只在子类拥有特定属性时起作用。这个子类除了继承至基类外与基类没有任何关系。  
+`class Control {
+    private state: any;
+}`  
+`interface SelectableControl extends Control {
+    select(): void;
+}`  
+`class Button extends Control implements SelectableControl {
+    select() { }
+}`  
+`class TextBox extends Control { select() { } }`  
+`// 错误：“Image”类型缺少“state”属性。`  
+`class Image implements SelectableControl {
+    select() { }
+}`  
+`class Location {}`  
+例子中SelectableControl包含了Control的所有成员，包括私有成员state。因为state是私有成员，所以只能够是Control的子类才能实现SelectableControl接口。因为只有Control的子类才能拥有一个声明能够于Control的私有成员state，这对私有成员的兼容性是必须的。  
+在Control类内部，是允许通过SelectableControl的实例来访问私有成员state的。实际上，SelectableControl接口和拥有select方法的Control类是一样的。Button和TextBox类是SelectableControl的子类（因为它们都继承自Control并有select方法），但Image和Location类并不是这样的。
+### 4.类
+传统js程序是使用函数和基于原型的继承来创建可复用的组件，从js6开始，js开发者可以使用基于类的面向对象的方式。  
+#### 类  
+`class Greeter {
+    greeting: string;
+    constructor(message: string) {
+        this.greeting = message;
+    }
+    greet() {
+        return "Hello, " + this.greeting;
+    }
+}`  
+`let greeter = new Greeter("world");`  
+声明一个Greeter类。这个类有三个成员，greeting属性，构造函数，greet方法。  
+在引用任何一个类的成员的时候都用到了this，它表示我们访问的是类成员。  
+最后一行使用new构造了Greeter的一个实例，它会调用之前定义的构造函数，创建一个Greeter类型的新对象，并执行构造函数初始化它。  
+#### 继承  
+在ts中可以经常使用面向对象模式，基于类的设计模式中一种最基本的模式是允许使用继承来扩展现有的类。  
+`class Animal {
+    move(distanceInMeters: number = 0) {
+        console.log(`Animal moved ${distanceInMeters}m.`);
+    }
+}`  
+`class Dog extends Animal {
+    bark() {
+        console.log('Woof! Woof!');
+    }
+}`  
+`const dog = new Dog();`  
+`dog.bark();`  
+`dog.move(10);`  
+`dog.bark();`  
+类从基类中继承了属性和方法。在这里Dog是一个派生类，它来自于Animal基类，通过extends关键字。派生类通常被称为子类，基类通常被称为基类。因为Dog继承了Animal的功能，可以创建一个Dog的实例，调用bark和move方法。  
+`class Animal {
+    name: string;
+    constructor(theName: string) { this.name = theName; }
+    move(distanceInMeters: number = 0) {
+        console.log(`${this.name} moved ${distanceInMeters}m.`);
+    }
+}`  
+`class Snake extends Animal {
+    constructor(name: string) { super(name); }
+    move(distanceInMeters = 5) {
+        console.log("Slithering...");
+        super.move(distanceInMeters);
+    }
+}`  
+`class Horse extends Animal {
+    constructor(name: string) { super(name); }
+    move(distanceInMeters = 45) {
+        console.log("Galloping...");
+        super.move(distanceInMeters);
+    }
+}`  
+`let sam = new Snake("Sammy the Python");`  
+`let tom: Animal = new Horse("Tommy the Palomino");`  
+`sam.move();`  
+`tom.move(34);`  
+本例使用extends关键字创建了两个Animal的子类，与前一个例子不同的是，派生类中包含了一个构造函数，它必须调用super（）方法，它会执行基类的构造函数。而且在构造函数里访问this的属性之前，一定要调用super（），这是ts中强制执行的一条规范。  
+这个例子也演示了如何在子类里重写父类的方法。  
+注意，即使 tom被声明为 Animal类型，但因为它的值是 Horse，调用 tom.move(34)时，它会调用 Horse里重写的方法。  
+#### 公有私有受保护的修饰符  
+- 默认为public  
+在ts中成员默认为public。
+- 理解private  
+当成员被标记为private时，它就不能在声明它的类的外部访问。  
+`class Animal {
+    private name: string;
+    constructor(theName: string) { this.name = theName; }
+}`  
+`new Animal("Cat").name; // 错误: 'name' 是私有的.`  
 
-### 4.类  
+#### readonly修饰符  
+#### 存取器  
+#### 静态属性  
+#### 抽象类  
+#### 高级技巧  
 ### 5.函数  
 ### 6.泛型  
