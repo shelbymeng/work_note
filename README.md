@@ -1129,3 +1129,20 @@ pickCard方法根据传入的参数不同会返回两种类型，如果传入的
 }`  
 `createInstance(Lion).keeper.nametag;  // typechecks!`  
 `createInstance(Bee).keeper.hasMask;   // typechecks!`  
+
+### 枚举  
+### 类型推论  
+### 类型兼容性  
+### 高级类型  
+### Symbols
+### 迭代器和生成器  
+### 模块  
+### 命名空间  
+### 命名空间和模块  
+### 模块解析  
+### 声明合并  
+### JSX  
+### 装饰器  
+### Mixins  
+### 三斜线指令  
+### js文件检查
