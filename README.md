@@ -33,7 +33,7 @@ HEAD指针始终指向当前版本。回退操作就是将HEAD指向前一个版
 ### 3.分支管理  
 `查看分支 git branch`  
 `创建分支 git branch <name>`  
-`切换分支 git checkout <name>  || gitit switch <name>`  
+`切换分支 git checkout <name>  || git switch <name>`  
 `创建加切换分支 git checkout -b <name> || git switch -c <name>`  
 `合并某分支到指定的分支 git merge <name>`  
 `删除分支 git branch -d <name>`  
