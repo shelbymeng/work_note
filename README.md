@@ -1191,9 +1191,56 @@ pickCard方法根据传入的参数不同会返回两种类型，如果传入的
 }`  
 另一个变化是
 #### 运行时的枚举  
+枚举是在运行时真正存在的对象。  
+`enum E {
+    X, Y, Z
+}`  
+能够传递给functions。  
+`function f(obj: { X: number }) {
+    return obj.X;
+}`  
+`// Works, since 'E' has a property named 'X' which is a number.`  
+`f(E);`  
 #### 反向映射  
+数字枚举成员还具有反向映射，从枚举值到枚举名字。  
+`function f(obj: { X: number }) {
+    return obj.X;
+}`  
+`// Works, since 'E' has a property named 'X' which is a number.`  
+`f(E);`  
+ts会将上面的代码编译成下面的js。  
+`var Enum;`  
+`(function (Enum) {
+    Enum[Enum["A"] = 0] = "A";
+})(Enum || (Enum = {}));`  
+`var a = Enum.A;`  
+`var nameOfA = Enum[a]; // "A"`  
+生成的代码中，枚举类型被编译成一个对象，它包含了一个正向映射（name -> value）和反向映射（value -> name）。引用枚举成员总是会生成为对属性访问并且永远也不会内联代码。  
+**注意：** 不会为字符串枚举成员生成正向映射。  
 #### const枚举  
-#### 外部枚举  
+为了避免在额外的生成的代码上的开销和额外的非直接的对枚举成员的访问，可以使用const枚举。常量枚举通过在枚举上使用const修饰符来定义。  
+`const enum Enum {
+    A = 1,
+    B = A * 2
+}`  
+常量枚举只能使用常量枚举表达式，并且不同于常规的枚举，它们在编译阶段会被删除，常量的枚举成员在使用的地方会被内敛进来，这是因为常量枚举不允许包含计算成员。  
+`const enum Directions {
+    Up,
+    Down,
+    Left,
+    Right
+}`  
+`let directions = [Directions.Up, Directions.Down, Directions.Left, Directions.Right]`  
+生成的代码为：  
+`var directions = [0 /* Up */, 1 /* Down */, 2 /* Left */, 3 /* Right */];`  
+#### 外部枚举   
+外部枚举用来描述已经存在的枚举类型的形状。  
+`declare enum Enum {
+    A = 1,
+    B,
+    C = 2
+}`  
+外部枚举和非外部枚举有个重要的区别，在正常的枚举中，没有初始化方法的成员会被当作常数成员，对于非常数的外部枚举而言，没有初始化的方法被当作需要经过计算。  
 ### 类型推论  
 ### 类型兼容性  
 ### 高级类型  
