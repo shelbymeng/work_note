@@ -35,7 +35,7 @@ HEAD指针始终指向当前版本。回退操作就是将HEAD指向前一个版
 `创建分支 git branch <name>`  
 `切换分支 git checkout <name>  || git switch <name>`  
 `创建加切换分支 git checkout -b <name> || git switch -c <name>`  
-`合并某分支到指定的分支 git merge <name>`  
+`合并某分支到当前的分支 git merge <name>`  
 `删除分支 git branch -d <name>`  
 `将工作区储藏起来 git stash`  
 `查看储藏的工作区列表 git stash list`  
