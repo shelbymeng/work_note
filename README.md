@@ -1244,9 +1244,178 @@ ts会将上面的代码编译成下面的js。
 ### 类型推论  
 ### 类型兼容性  
 ### 高级类型  
-### Symbols
+### Symbols  
+#### 介绍
+symbel类型的值是由Symbol构造函数创建的。  
+`let sym1 = Symbol();`  
+`let sym2 = Symbol("key");//可选的字符串key`  
+Symbol是不可改变且唯一的。  
+symbols也可以被用作对象属性的键。  
+`let sym = Symbol();`  
+`let obj = {
+    [sym]: "value"
+};`  
+`console.log(obj[sym]); //value`  
+Symbols也可以与计算出的属性名声明相结合来声明对象属性和类成员。  
+`const getClassNameSymbol = Symbol();`  
+`class C{
+    [getClassNameSymbol](){
+        return "C";
+    }
+}`  
+`let c = new C();`  
+`let className = c[getClassNameSymbol](); //"C"`  
+#### 众所周知的Symbols  
+除了用户自定义的symbols，内置的symbols用来表示语言内部的行为。  
+以下为这些symbols的列表：  
+
+- `Symbol.hasInstance`  
+方法，会被instanceof运算符调用，构造器对象用来识别一个对象是否是其实例。  
+- `Symbol.isConcatSpreadable`  
+布尔值，表示当在一个对象上调用`Array.prototype.concat`时，这个对象的数组元素是否可展开。  
+- `Symbol.iterator`  
+方法，被`for-of`语句调用，返回对象的默认迭代器。  
+- `Symbol.match`  
+方法，被`String.prototype.match`调用，正则表达式用来匹配字符串。  
+- `Symbol.replace`  
+方法，被`String.prototype.replace`调用，正则表达式用来替换字符串中匹配的子串。  
+- `Symbol.search` 
+方法，被`String.prototype.search`调用，正则表达式返回被匹配部分在字符串中的索引。  
+- `Symbol.species`  
+函数值，为一个构造函数，用来创建派生对象。  
+- `Symbol.split`  
+方法，被`String.prototype.split`调用，正则表达式用来分割字符串。  
+- `Symbol.toPrimitive`  
+方法，被`ToPrimitive`抽象操作调用，把对象转换为相应的原始值。  
+- `Symbol.toStringTag`  
+方法，被内置方法`Object.prototype.toString`调用，返回创建对象时默认的字符串描述。   
+- `Symbol.unscopables`  
+对象，它自己拥有的属性会被with作用域排除在外。  
 ### 迭代器和生成器  
+#### 可迭代性 
+当一个对象实现了`Symbol.iterator`属性时，我们认为它是可迭代的。一些内置的类型如`Array,Map,Set,String,Int32Array,Unit32Array`等都已经实现了各自的`Symbol.iterator`。对象上的`Symbol.iterator`函数负责返回供迭代的值。  
+#### for-of语句  
+`for..of`会遍历可迭代的对象，带哦用对象上的`Symbol.iterator`方法，下面是在数组上使用for-of的简单例子：  
+`let someArray = [1, "string", false];`  
+`for(let entry of someArray){
+    console.log(entry);
+    //1, "string", false
+}`  
+#### for..of与for..in语句  
+均表示一个可迭代的列表，但是用于迭代的值不同，for..in迭代是对象的键的列表。而for..of则是迭代对象的键的对应值。  
+`let list = [1, 2, 3, 4];`  
+`for(let i in list){
+    console.log(i);
+    //0,1,2,3
+}`  
+`for(let i of list){
+    console.log(i);
+    //1,2,3,4
+}`  
+另一个区别是for..in可以操作任何对象；它提供了查看对象属性的一种方法，但是for..of关注于迭代对象的值，内置对象Map和Set已经实现了Symbol.iterator方法，让我们可以访问它们保存的值。  
+`let pets = new Set(["cat", "dog"])`  
+`pets["species"] = "mammals";`  
+`for(let pet in pets){
+    console.log(pet);
+    //"species"
+}`  
+`for(let pet of pets){
+    console.log(pet);
+    //"cat", "dog"
+}`  
+#### 代码生成  
+目标为es5和es3  
+当生成目标为es5和es3时，迭代器只允许在Array类型上使用，在非数组上使用for..of语句会得到一个错误，就算这些非数组值已经实现了Symbol.iterator属性。  
+编译器会生成一个简单的for循环做为forof循环，比如：  
+`let number = [1,2,3];`  
+`for(let num of number){
+    console.log(num);
+}`  
+生成的代码为：  
+`var number = [1,2,3];`  
+`for(var _i = 0;i < number.length;i++){
+    var num = number[_i];
+    console.log(num);
+}`  
+目标为ECMAScript2015或更高时  
+编译器会生成相应引擎的for..of内置迭代器实现方式。  
 ### 模块  
+#### 介绍  
+从ECMASctipt 2015开始js中引入了模块的概念，ts也沿用这个概念。  
+模块在其自身的作用域里执行，而不是在全局作用域中；这意味着定义一个模块里的变量，函数，类等等在模块外部是不可见的，除非你明确的使用export形式之一导出它们，相反如果想要使用其他模块导出的变量，函数，类，接口等的时候，你必须要导入它们，可以使用import形式之一。  
+模块是自声明的；两个模块之间的关系是通过在文件级别上使用imports和exports建立的。  
+模块使用模块加载器去导入其他的模块，在运行时模块加载器的作用是在执行此模块代码前去查找并执行这个模块的所有依赖。jsmk加载器是服务于CommonJs和服务于web应用的Require.js。 
+ts与ECMAScript 2015一样，任何包含顶级import或者export的文件都被当作成一个模块。相反如果有一个文件不带有顶级的import或者export声明，那么它的内容被视为全局可见的，因此对模块也是可见的。  
+#### 导出  
+1. 导出声明  
+任何声明（变量，函数，类，类型别名或者接口）都能够通过添加export关键字来导出。  
+`export interface StringValidator {
+    isAcceptable(s: string): boolean;
+}`  
+`export const numberRegexp = /^[0-9]+$/;`  
+`export class ZipCodeValidator implements StringValidator {
+    isAcceptable(s: string) {
+        return s.length === 5 && numberRegexp.test(s);
+    }
+}`  
+2. 导出语句  
+导出语句很便利，因为我们可能需要对导出的部分重命名，所以上面的例子可以改写：  
+`class ZipCodeValidator implements StringValidator {
+    isAcceptable(s: string) {
+        return s.length === 5 && numberRegexp.test(s);
+    }
+}`  
+`export { ZipCodeValidator };`  
+`export { ZipCodeValidator as mainValidator };`  
+3. 重新导出  
+我们经常会去扩展其他模块，并且只导出那个模块的内容，重新导出功能并不会在当前模块导入那个模块或者定义一个新的局部变量。  
+`export class ParseIntBasedZipCodeValidator {
+    isAcceptable(s: string) {
+        return s.length === 5 && parseInt(s).toString() === s;
+    }
+}`
+`// 导出原先的验证器但做了重命名
+export {ZipCodeValidator as RegExpBasedZipCodeValidator} from "./ZipCodeValidator";`  
+或者一个模块可以包裹多个模块，并把它们导出的内容联合在一起通过语法：  
+`export * from "module"`  
+`export * from ".StringValidator";   
+//exports interface StringValidator`  
+`export * from "./LettersOnlyValidator";  
+// exports class LettersOnlyValidator`  
+`export * from "./ZipCodeValidator";  // exports class ZipCodeValidator`  
+#### 导入  
+1. 导入一个模块中的某个内容  
+`import { ZipCodeValidator } from "./ZipCodeValidator";`  
+`let myValidator = new ZipCodeValidator();`  
+2. 对导入的内容重命名  
+`import { ZipCodeValidator as ZCV } from "./ZipCodeValidator";`  
+`let myValidator = new ZCV();`  
+3. 将整个模块导入到一个变量，并通过它来访问模块的导出部分。  
+`import * as validator from "./ZipCodeValidator";`  
+`let myValidator = new validator.ZipCodeValidator();`  
+4. 具有副作用的导入模块  
+不推荐，一些模块会设置一些全局状态供其他模块使用。这些模块可能没有任何的导出或用户根本就不关注它的导出：  
+`import "./my-module.js";`  
+#### 默认导出   
+每个模块都可以有一个默认导出。默认导出使用default关键字标记；并且一个模块只能有一个默认导出，需要使用一种特殊的导入形式来导入default导出。  
+default导出很便利，像JQ这样的类库可能有一个默认的导出JQuery或$,并且也会使用同样的名字JQuery或$导出JQuery。  
+导出：
+`declare let $: JQuery;`  
+`export default $;`  
+导入：
+`import $ from "JQuery";`   
+`$("button.continue").html( "Next Step..." );`  
+类和函数声明可以直接被标记为默认导出。标记为默认导出的类和函数的名字是可以省略的。  
+#### `exoprt`和`import = require()`  
+CommonJs和AMD的环境里都有一个exports变量，这个变量包含了一个模块的所有导出内容。  
+CommonJs和AMD的exports都可以被赋值为一个对象，这种情况下其作用域就类似于es6语法里的默认导出，即export default语法，虽然作用类似，但是export default语法并不能兼容CommonJs和AMD的exports。 
+为了支持CommonJs和AMD的exports，ts提供了export = 语法。  
+export = 语法定义一个模块的导出对象，这里的对象一词指的是类，接口，命名空间，函数或枚举。  
+若使用export = 导出一个模块，则必须使用ts的特定语法，import module = require("module")来导入模块。  
+#### 生成模块代码  
+根据编译时指定的模块目标参数，编译器会生成相应的供各个模块加载系统使用的代码。  
+
+
 ### 命名空间  
 ### 命名空间和模块  
 ### 模块解析  
