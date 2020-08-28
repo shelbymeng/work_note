@@ -76,3 +76,27 @@ class mom extends Person{
         return "aaaa"
     }
 }
+
+function getName<T>(arg:T[]):T[]{
+    console.log(arg.length);
+    return arg
+}
+
+class test<T>{
+    value:number;
+    add:(x:T,y:T) =>  T;
+}
+let test1 = new test<number>()
+test1.value = 0;
+test1.add = function(x,y){ return x + y }
+
+
+interface lengthwise{
+    length:number;
+}
+function test222<T extends lengthwise>(arg:T):T{
+    console.log(arg.length);
+    return arg;
+}
+test222("2222");
+test222(3)
